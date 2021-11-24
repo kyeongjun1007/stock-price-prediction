@@ -73,17 +73,6 @@ sample.Close = sample.Close.ffill()
 sample = pd.pivot_table(data = sample, values = 'Close', columns = 'weekday', index = 'weeknum')
 sample.head()
 
-var = fdr.DataReader(sample_code, start = start_date, end = end_date)[['High','Low']].reset_index()
-var['var'] = var.iloc[:,1]-var.iloc[:,2]
-var = pd.merge(Business_days, var.iloc[:,[0,3]], how = 'outer')
-var['weekday'] = var.Date.apply(lambda x : x.weekday())
-var['weeknum'] = var.Date.apply(lambda x : x.strftime('%V'))
-var['var'] = var['var'].ffill()
-var = pd.pivot_table(data = var, values = 'var', columns = 'weekday', index = 'weeknum')
-var.columns = ['5','6','7','8','9']
-
-sample = pd.concat([pd.DataFrame(sample).reset_index(drop=True),pd.DataFrame(var).reset_index(drop=True)], axis = 1)
-
 # In[5]:
 
 
@@ -127,7 +116,7 @@ for y_value in y_values :
     prediction = model.predict(np.expand_dims(x_public,0))
     predictions.append(prediction[0])
 predictions
-
+y_values
 
 # - 실제 Public 값
 
@@ -157,18 +146,7 @@ for code in tqdm(stock_list['종목코드'].values):
     data['weeknum'] = data.Date.apply(lambda x : x.strftime('%V'))
     data.Close = data.Close.ffill()
     data = pd.pivot_table(data = data, values = 'Close', columns = 'weekday', index = 'weeknum')
-    
-    var = fdr.DataReader(code, start = start_date, end = end_date)[['High','Low']].reset_index()
-    var['var'] = var.iloc[:,1]-var.iloc[:,2]
-    var = pd.merge(Business_days, var.iloc[:,[0,3]], how = 'outer')
-    var['weekday'] = var.Date.apply(lambda x : x.weekday())
-    var['weeknum'] = var.Date.apply(lambda x : x.strftime('%V'))
-    var['var'] = var['var'].ffill()
-    var = pd.pivot_table(data = var, values = 'var', columns = 'weekday', index = 'weeknum')
-    var.columns = ['5','6','7','8','9']
-    
-    data = pd.concat([pd.DataFrame(data).reset_index(drop=True),pd.DataFrame(var).reset_index(drop=True)], axis = 1)
-    
+ 
     x = data.iloc[0:-2].to_numpy() # 2021년 1월 04일 ~ 2021년 10월 22일까지의 데이터로
     y = data.iloc[1:-1].to_numpy() # 2021년 1월 11일 ~ 2021년 10월 29일까지의 데이터를 학습한다.
     y_0 = y[:,0]

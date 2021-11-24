@@ -23,12 +23,38 @@ sample_code = stock_list.loc[0,'종목코드']
 
 sample = fdr.DataReader(sample_code, start = start_date, end = end_date)[['Close']].reset_index()
 sample = pd.merge(Business_days, sample, how = 'outer')
+sample = sample.dropna()
 
 sample['Date'] = sample['Date'].astype(str)
 sample['Date'] = pd.to_datetime(sample['Date'], format = '%Y-%m-%d')
 sample['days'] = sample['Date'] - pd.datetime(2021,1,4,0,0)
 sample['days'] = sample['days'].astype(str)
 sample['days'] = sample.days.str[:-5].astype(int)
+sample['Close'][0]
+## Close mean
+sample['meanC'] = sample['Close'][0]
+for i in range(1,len(sample)) :
+    sample.iloc[i,3] = np.mean(sample.iloc[0:i+1,1])
+
+## month trend
+sample['trend_m'] = 0
+for i in range(21,len(sample)) :
+    model_m = LinearRegression()
+    model_m.fit(np.array(sample.iloc[i-21:i-1,2]).reshape(-1,1), sample.iloc[i-21:i-1,1])
+    sample.iloc[i,4] = model_m.coef_
+
+## week trend
+sample['trend_w'] = 0
+for i in range(6,len(sample)) :
+    model_w = LinearRegression()
+    model_w.fit(np.array(sample.iloc[i-6:i-1,2]).reshape(-1,1), sample.iloc[i-6:i-1,1])
+    sample.iloc[i,5] = model_w.coef_
 
 model = LinearRegression()
-model.fit(sample.Close, sample.days)
+model.fit(sample.iloc[21:,3:6].to_numpy(), sample.iloc[21:,1].to_numpy())
+model.predict(np.expand_dims(sample.iloc[len(sample)-1,3:6].to_numpy(),0))
+sample.iloc[len(sample)-1,1]
+
+sample.Close[209]
+sample['Close']
+sample.iloc[208,]
